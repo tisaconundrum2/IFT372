@@ -1,14 +1,14 @@
 # IFT372 Rayleigh Channel Activity 3 
 ## Nicholas Finch
 
-1.	At the command prompt, enter help, select comm/comm., Channels, rayleighchan. Also see doc rayleighchan.
-What other channel function is available besides rayleighchan? 
+1. At the command prompt, enter help, select comm/comm., Channels, rayleighchan. Also, see doc rayleighchan.
+What is another channel function available besides rayleighchan? 
 
 >comm.AWGNChannel            - Add white Gaussian noise to input signal
 >comm.BinarySymmetricChannel - Introduce binary errors
 >comm.RicianChannel          - Filter input through a multipath Rician fading SISO channel
 >comm.MIMOChannel            - Filter input through a multipath fading MIMO channel
->comm.LTEMIMOChannel         - Filter input through a LTE specific multipath fading MIMO channel
+>comm.LTEMIMOChannel         - Filter input through an LTE specific multipath fading MIMO channel
 >awgn                        - Add white Gaussian noise to a signal
 >bsc                         - Model a binary symmetric channel
 >stdchan                     - Construct a channel object from a set of standardized channel models
@@ -19,7 +19,7 @@ What other channel function is available besides rayleighchan?
 ```
 The Rayleigh fading channel object has the following properties:
 ChannelType: 'Rayleigh'
-This is Read only.
+This is Read-only.
 InputSamplePeriod: Input signal sample period (s)
 DopplerSpectrum: Doppler spectrum object(s)
 MaxDopplerShift: Maximum Doppler shift (Hz)
@@ -31,10 +31,10 @@ StorePathGains: Store current complex path gain vector (0 or 1)
 PathGains: Current complex path gain vector
 This is Read only.
 ChannelFilterDelay: Channel filter delay (samples)
-This is Read only.
+This is Read-only.
 ResetBeforeFiltering: Resets channel state every call (0 or 1)
 NumSamplesProcessed: Number of samples processed
-This is Read only.
+This is Read-only.
 ```
 
 3.	Enter the following code:
@@ -60,28 +60,28 @@ PathGains: 1.1157 – 0.2778i
 ResetBeforeFiltering: 1
 ```
 
-Which are writeable and which are read-only? 
-
-
-
 Why is PathDelays = 0? 
 
 >Only one discrete path
 
-What type of rayleigh channel did you generate, flat or frequency selective?
+What type of Rayleigh channel did you generate, flat or frequency selective?
 
 > frequency-flat, because our value is a scalar
 
 Vary the input sampling period: InputSamplePeriod, by entering the following: 
 
-`ral.InputSamplePeriod= 1 e-6 `
+```
+ral.InputSamplePeriod= 1 e-6 
+```
 
 What changes do you observe?	
 
-    InputSamplePeriod: 1.0000e-06
-    PathGains: -0.3628 + 0.3997i
+```
+InputSamplePeriod: 1.0000e-06
+PathGains: -0.3628 + 0.3997i
+```
 
-Next we shall plot a channel's power. To do so, we will have to filter a random signal with the generated channel. First generate the random signal, and then use the filter function as shown.
+Next, we shall plot a channel's power. To do so, we will have to filter a random signal with the generated channel. First, generate the random signal, and then use the filter function as shown.
 
 ```
 m=30000;	
@@ -138,7 +138,6 @@ plot(20*log10(abs(y)))
 
 ![](https://i.imgur.com/cKN7m0i.png)
 
-
 `PathGains: -0.8364 + 0.5100i`
 
 
@@ -152,20 +151,36 @@ tau=[0, 1e-5, 1e-6];
 ral=rayleighchan(ts,fd,tau); ral
 ```
 
-What difference do you notice, as far as the AvgPathGaindB parameter is concerned? Can you explain this?
+What difference do you notice, as far as the AvgPathGaindB parameter is concerned? 
 
-Now use this multipath channel to filter the input signal 
-`x=randi([0,1],m,n);` where `m=30000` and `n=1` and create a plot using the syntax provided earlier.
+>Channel has more than one path.
+
+Can you explain this?
+
+>AvgPathGaindB - Vector listing the average gain of the discrete paths in decibels.
+
+Now use this multipath channel to filter the input signal and create a plot using the syntax provided earlier.
+
+```
+m=30000;	
+n=1;
+x=randi([0,1],m,n);
+y=filter(ral,x);
+plot(20*log10(abs(y)))
+```
 
 Save your plot and discuss the result through comparison to the frequency-flat plot.
 
-2.	Generate a three path Rayleigh Channel with variable average path gains. The syntax applicable here is:
+![image](https://user-images.githubusercontent.com/11879769/36349595-0771579e-1448-11e8-8620-2a29a292a992.png)
+
+>The plot drops off, but in this case, this is normal. We can also see that there is increased signal now reaching the receiver.
+
+2.	Generate a three-path Rayleigh Channel with variable average path gains. The syntax applicable here is: chan=rayleighchan(ts,fd,tau,pdb) ts,fd, and tau is as stated earlier, and pdb is a vector of average path gains.
 
 ```
-chan=rayleighchan(ts,fd,tau,pdb) % ts,fd, and tau is as stated earlier, and pdb is a vector of average path gains.
-ts=1e-5;	
+ts=1e-5;
 fd=120;
-tau=[0, 1 e-5, 1 e-6];
+tau=[0, 1e-5, 1e-6];
 pdb=[0,-10,-20];
 ral=rayleighchan(ts,fd,tau,pdb);
 ral
@@ -176,40 +191,83 @@ plot(20*log10(abs(y)))
 
 Save your plot and comment.
 
+![image](https://user-images.githubusercontent.com/11879769/36349769-45879678-1449-11e8-88d2-e29ba259c822.png)
+
 What difference did you notice with the AvgPathGaindB parameter?
 
-3. Using a Rayleigh Channel to filter a Modulated Signal, and Obtaining channel responses: (Impulse and frequency etc):
-Modulate the input data using 16QAM
+> The channel has more than one path.
+
+3. Using a Rayleigh Channel to filter a Modulated Signal, and Obtaining channel responses: (Impulse and frequency etc): Modulate the input data using 16QAM
 
 ```
-M = 16;
-k = log2(M);
-Input = reshape(x,length(x)/k,k);
-xdec = bi2de(reshape(x,k,length(x)/k). ','left-msb');
-modout = qammod(xdec,M);
-ral % Enter( Notice that the StoreHistory parameter =0). Change this to 1 by: ral.StoreHistory = true;
-ral % Enter( Did the StoreHistory parameter change?): continue:
-y = filter(ral,modout); 
+M=16;
+k=log2(M);
+Input=reshape(x,length(x)/k,k);
+xdec = bi2de(reshape(x,k,length(x)/k).' ,'left-msb');
+modout=qammod(xdec,M);
+ral % Enter( Notice that the StoreHistory parameter =0).  
+```
+
+             ChannelType: 'Rayleigh'
+       InputSamplePeriod: 1.0000e-05
+         DopplerSpectrum: [1×1 doppler.jakes]
+         MaxDopplerShift: 120
+              PathDelays: [0 1.0000e-05 1.0000e-06]
+           AvgPathGaindB: [0 -10 -20]
+      NormalizePathGains: 1
+            StoreHistory: 0
+          StorePathGains: 0
+               PathGains: [-0.1382 - 0.8340i -0.0868 - 0.3198i -0.0150 + 0.0664i]
+      ChannelFilterDelay: 4
+    ResetBeforeFiltering: 1
+     NumSamplesProcessed: 30000
+
+```
+ral.StoreHistory=true; % Change this to 1 by
+ral
+```
+
+Did the StoreHistory parameter change? 
+> Yes
+
+```
+y=filter(ral,modout); 
 plot(ral)
 ral % Enter
 ```
 
 Why is the number of processed samples only 7500? Save and discuss your plot.
 
-The channel used to filter the modulated signal was a three path channel. Can you see all three paths? 
+![image](https://user-images.githubusercontent.com/11879769/36350070-37ad8f76-144e-11e8-8f74-7edb85a17c4c.png)
+
+>Because the plot shows three paths for the signal and number of samples. It shows how the paths and signal are affected by the number of bits per level and possible states.
+
+The channel used to filter the modulated signal was a three-path channel. Can you see all three paths? 
+
+>Yes
 
 Why are two of these so close and how can you modify the code to resolve these? 
 
+>The two paths are close due to the sampling index and by making the number smaller but not smaller than -7 we are able to separate the two paths.
+
 As you increase or decrease the sample index, what do you observe?
+
+>By increasing the sample index value we see more of the signal. When we approach 7500 the signal will start to fade.
 
 Frequency Response:
 
 Select the frequency response option from the visualization drop box. Again record your observations as the sample index is varied. Save and discuss your plot.
 
+> By increasing the sample index value we see more of the signal. When we approach 7500 the signal will start to fade.
+
 *Waterfall Plot*
 
 Select the IR Waterfall option. Vary the sample index from 1 to 30000. Discuss your observation. Save your plot and discuss the meaning of this plot.
 
+>By decreasing ts we see a broader view of the signal and by running the index we see what I think to be the harmonics of the almost periodic signal. In addition the waterfall shows us the fading point of the signal
+
 Doppler Spectrum:
 
 Obtain the Doppler spectrum for the multipath channel. Save and discuss your plot.
+
+>The filter is passing the signal but not the noise
